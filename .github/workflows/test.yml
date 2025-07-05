@@ -20,9 +20,13 @@ jobs:
       - name: Install Playwright Browsers
         run: pnpm exec playwright install --with-deps
 
+      # Do a build of the application
+      - name: Build application
+        run: pnpm build
+
       # Execute E2E tests
       - name: Run Playwright tests
-        run: pnpm exec playwright test
+        run: pnpm test:e2e:ci
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
         with:
