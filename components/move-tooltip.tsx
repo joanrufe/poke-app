@@ -167,16 +167,14 @@ export function MoveTooltip({ moveName, moveUrl, children }: MoveTooltipProps) {
             <div className="flex items-center justify-center py-4">
               <Loader2 className="h-6 w-6 animate-spin text-primary" />
               <span className="ml-2 text-sm text-muted-foreground">
-                Cargando...
+                Loading...
               </span>
             </div>
           )}
 
           {isError && (
             <div className="text-center py-4">
-              <p className="text-sm text-red-500">
-                Error al cargar el movimiento
-              </p>
+              <p className="text-sm text-red-500">Error loading move</p>
             </div>
           )}
 
