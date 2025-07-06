@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useRef, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -16,18 +15,17 @@ import {
 import Link from "next/link";
 import Image from "next/image";
 import { useFavorites } from "@/hooks/use-favorites";
-import { ThemeToggle } from "@/components/theme-toggle";
 import {
   useTypeDetail,
   usePokemonByTypeInfinite,
 } from "@/hooks/use-pokemon-queries";
+import { useIntersectionObserver } from "@/hooks/use-intersection-observer";
 import { TypeBadge } from "@/components/type-badge";
 
 export default function TypePage() {
   const params = useParams();
   const router = useRouter();
   const { favorites, toggleFavorite } = useFavorites();
-  const observerRef = useRef<IntersectionObserver | null>(null);
 
   const typeName = params.typeName as string;
 
@@ -48,37 +46,19 @@ export default function TypePage() {
     isFetchingNextPage,
   } = usePokemonByTypeInfinite(typeName, 20);
 
-  // Intersection Observer for infinite scroll
-  const lastPokemonElementRef = useCallback(
-    (node: HTMLDivElement | null) => {
-      if (isFetchingNextPage) return;
-      if (observerRef.current) observerRef.current.disconnect();
-
-      observerRef.current = new IntersectionObserver(
-        (entries) => {
-          if (entries[0].isIntersecting && hasNextPage) {
-            fetchNextPage();
-          }
-        },
-        {
-          threshold: 0.1,
-          rootMargin: "100px",
-        }
-      );
-
-      if (node) observerRef.current.observe(node);
-    },
-    [isFetchingNextPage, fetchNextPage, hasNextPage]
-  );
-
-  // Cleanup observer on unmount
-  useEffect(() => {
-    return () => {
-      if (observerRef.current) {
-        observerRef.current.disconnect();
+  // Use custom hook for infinite scroll
+  const lastPokemonElementRef = useIntersectionObserver(
+    () => {
+      if (!isFetchingNextPage && hasNextPage) {
+        fetchNextPage();
       }
-    };
-  }, []);
+    },
+    {
+      threshold: 0.1,
+      rootMargin: "100px",
+    },
+    !isFetchingNextPage && hasNextPage
+  );
 
   // Get all Pokemon from all pages
   const allPokemon = pokemonData?.pages.flatMap((page) => page.pokemon) ?? [];
